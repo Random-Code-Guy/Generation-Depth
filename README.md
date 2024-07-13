@@ -19,8 +19,8 @@ passes tests and improves the application
 <h2>Before Tiling was added standard grey depth</h2>
 <img src='https://iili.io/dBBU5TG.png'>
 
-<h2>After Tiling was added inverted grey depth</h2>
-<img src='https://iili.io/dBBZZX9.png'>
+<h2>After Tiling was added standard grey depth</h2>
+<img src='https://iili.io/dBCBeiG.png'>
 
 
 </div>
