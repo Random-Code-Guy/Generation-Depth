@@ -128,15 +128,17 @@ def save_depth_map(depth_map, output_path, display_mode):
     plt.imsave(output_path, depth_map_np, cmap='gray')
 
 # Define a function to generate higher quality depth maps
-def generate_high_quality_depth_map(image, model):
+def generate_high_quality_depth_map(image, model, log_queue):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     image_tensor = transforms.ToTensor()(image).unsqueeze(0).to(device)
     
+    log_queue.put("Starting low resolution depth map generation...\n")
     low_res_depth = model(image_tensor)['metric_depth'].squeeze().cpu().detach().numpy()
     low_res_scaled_depth = 2**16 - (low_res_depth - np.min(low_res_depth)) * 2**16 / (np.max(low_res_depth) - np.min(low_res_depth))
     
     low_res_depth_map_image = Image.fromarray((0.999 * low_res_scaled_depth).astype("uint16"))
     low_res_depth_map_image.save('zoe_depth_map_16bit_low.png')
+    log_queue.put("Low resolution depth map generated.\n")
     
     im = np.asarray(image)
     tile_sizes = [[4, 4], [8, 8]]
@@ -238,6 +240,8 @@ def generate_high_quality_depth_map(image, model):
                 # Ensure all shapes match
                 if filter_slice.shape == scaled_depth[:tile_shape[0], :tile_shape[1]].shape == low_res_slice.shape:
                     compiled_tiles[x:x_end, y:y_end] += filter_slice * (np.mean(low_res_slice) + np.std(low_res_slice) * ((scaled_depth[:tile_shape[0], :tile_shape[1]] - np.mean(scaled_depth[:tile_shape[0], :tile_shape[1]])) / np.std(scaled_depth[:tile_shape[0], :tile_shape[1]])))
+                
+                log_queue.put(f"Processed tile ({x}, {y}) to ({x_end}, {y_end}) for tile size {tile_size}.\n")
 
         compiled_tiles[compiled_tiles < 0] = 0
         compiled_tiles = np.nan_to_num(compiled_tiles)  # Replace NaN with 0 and infinity with large finite numbers
@@ -249,6 +253,7 @@ def generate_high_quality_depth_map(image, model):
         compiled_tiles = compiled_tiles.astype("uint16")
         tiled_depth_map = Image.fromarray(compiled_tiles)
         tiled_depth_map.save(f'tiled_depth_{i}.png')
+        log_queue.put(f"Tiled depth map for tile size {tile_size} saved.\n")
 
     grey_im = np.mean(im, axis=2)
     tiles_blur = gaussian_filter(grey_im, sigma=20)
@@ -260,6 +265,7 @@ def generate_high_quality_depth_map(image, model):
     
     mask_image = Image.fromarray((tiles_difference * 2**16).astype("uint16"))
     mask_image.save('mask_image.png')
+    log_queue.put("Mask image saved.\n")
 
     # Ensure all shapes match for combination
     min_shape = np.min([compiled_tiles_list[0].shape, compiled_tiles_list[1].shape, low_res_scaled_depth.shape], axis=0)
@@ -274,13 +280,14 @@ def generate_high_quality_depth_map(image, model):
 
     combined_image = Image.fromarray(combined_result)
     combined_image.save('combined_image_depth.png')
+    log_queue.put("High quality depth map generation complete.\n")
     return combined_image
 
 # GUI Application
 class DepthMapApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Depth Map Generator")
+        self.root.title("Depth Map Generator - Dandi Co / Bluchip")
 
         self.model = None
         self.device = None
@@ -355,8 +362,9 @@ class DepthMapApp:
             if not self.image_path:
                 messagebox.showwarning("Warning", "Please load an image first.")
                 return
+            self.log_queue.put("Starting depth map generation...\n")
             display_mode = self.display_mode_var.get()
-            high_quality_depth_map = generate_high_quality_depth_map(self.display_image, self.model)
+            high_quality_depth_map = generate_high_quality_depth_map(self.display_image, self.model, self.log_queue)
             high_quality_depth_map.save('high_quality_depth_map.png')
             self.depth_map = generate_depth_map(self.image_tensor, self.model)
             visualize_depth_map(self.depth_map, self, display_mode)
