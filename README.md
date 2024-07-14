@@ -1,5 +1,5 @@
 <div align="center">
-<h2>ZoeD-Tiling Depth Map Generator</h2>
+<h2>Generation Depth -Tiling Depth Map Generator</h2>
 
 [**DandiCo**]<sup>1</sup> · [**Bluchip**]<sup>2</sup>
 
@@ -11,13 +11,13 @@ then expanded to trying to use tiling to increese the depth map quality
 This application has a very simple gui using tkinter with generation done in its own
 thread to keep it stable
 
-Model is auto downloaded from torch hub if not local cache is found
+This application will be updated in the future to support a number of models including 
+MiDaS, ZoeDepth, DepthAnythingV2 and all of there options where possible!
 
 This is a work in progress please feel free to submit code to this project i will test and add everything that
 passes tests and improves the application
 
 <h2>ZoeDepth Tiling standard grey depth</h2>
 <img src='https://iili.io/dBCBeiG.png'>
-
 
 </div>
