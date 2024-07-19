@@ -1,7 +1,7 @@
 <div align="center">
 <h2>Generation Depth -Tiling Depth Map Generator</h2>
 
-[**DandiCo**]<sup>1</sup> · [**Bluchip**]<sup>2</sup>
+[**Random-Code-Guy**]<sup>1</sup>
 
 **Project Started 13/07/2024**
 
