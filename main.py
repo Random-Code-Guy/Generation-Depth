@@ -287,7 +287,7 @@ def generate_high_quality_depth_map(image, model, log_queue):
 class DepthMapApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Depth Map Generator - Dandi Co / Bluchip")
+        self.root.title("Depth Map Generator - Random Code Guy")
 
         self.model = None
         self.device = None
